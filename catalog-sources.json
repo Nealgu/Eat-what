@@ -1,0 +1,160 @@
+{
+  "batchId": "guangqi-2026-11-06",
+  "checkedOn": "2026-11-06",
+  "area": {
+    "name": "上海宜山路光启城及周边",
+    "anchorAddress": "上海市徐汇区宜山路455号"
+  },
+  "limitations": [
+    "根据公开单店资料在线核验，未电话联系或实地确认，不能保证当日营业。",
+    "资料抓取时间不代表商家更新或开业时间。guangqicheng.cn是商业楼宇信息网站，不是商场官方。",
+    "所有新增门店的步行距离均待补充，distanceKm=0不表示距离为零。",
+    "人均仅供参考，不是实时报价；未知或仅有价格区间时budget=0，不擅自构造单点金额。",
+    "原有20家数据按用户原始清单保留，本批未重新核验其价格或营业状态。"
+  ],
+  "restaurants": [
+    {
+      "id": "gqc-zhouzhenzhen-b2",
+      "name": "周真真南昌拌粉·瓦罐汤（光启城店）",
+      "address": "上海市徐汇区宜山路455号光启城地下二层68–70号",
+      "price": null,
+      "evidence": "Trip单店地址与营业时间资料，有2026-02评论。",
+      "urls": [
+        "https://kr.trip.com/restaurant/china/shanghai/detail/restaurant-133920080/"
+      ]
+    },
+    {
+      "id": "gqc-qiyuefen-xuhong",
+      "name": "柒月粉（徐虹中路店）",
+      "address": "上海市徐汇区徐虹中路26-7号",
+      "price": null,
+      "evidence": "Trip单店地址与营业时间资料，有2026年1–2月评论。",
+      "urls": [
+        "https://www.trip.com/restaurant/china/shanghai/detail/restaurant-133563224/"
+      ]
+    },
+    {
+      "id": "gqc-dicos-yishan",
+      "name": "德克士（宜山路店）",
+      "address": "上海市徐汇区凯旋路2561号-2",
+      "price": {
+        "amount": 31,
+        "currency": "CNY",
+        "type": "平台参考人均"
+      },
+      "evidence": "携程单店地址、人均与营业时间资料。",
+      "urls": [
+        "https://gs.ctrip.com/html5/you/foods/fooddetail/2/17515609.html"
+      ]
+    },
+    {
+      "id": "gqc-liujie-b1",
+      "name": "成都你六姐（光启城店）",
+      "address": "上海市徐汇区宜山路455号光启城时尚购物中心B1层74–75号",
+      "price": null,
+      "evidence": "Trip单店资料；与旧目录的大鼓米线铺位冲突，因此未同时加入大鼓米线。",
+      "urls": [
+        "https://www.trip.com/restaurant/china/shanghai/detail/restaurant-136420057/"
+      ]
+    },
+    {
+      "id": "gqc-pizzahut-kaijin",
+      "name": "必胜客（凯进·光启城店）",
+      "address": "上海市徐汇区宜山路455号光启城购物中心B2楼",
+      "price": null,
+      "evidence": "Tripadvisor单店地址；近期抓取的商业楼宇周边目录也列有必胜客光启城店。单店评论较旧。",
+      "urls": [
+        "https://cn.tripadvisor.com/Restaurant_Review-g308272-d10585925-Reviews-Pizza_Hut_Kai_Jin-Shanghai.html",
+        "https://www.guangqicheng.cn/"
+      ]
+    },
+    {
+      "id": "gqc-hangongyan-f5",
+      "name": "韩宫宴烤肉（光启城店）",
+      "address": "上海市徐汇区宜山路455号光启城五楼528",
+      "price": null,
+      "evidence": "找查网单店地址；商业楼宇周边目录交叉收录。目录不是商场官方。",
+      "urls": [
+        "https://www.zaoseo.com/place/1682160",
+        "https://www.guangqicheng.cn/"
+      ]
+    },
+    {
+      "id": "gqc-xinshiqi-f5",
+      "name": "新石器烤肉（光启城店）",
+      "address": "上海市徐汇区宜山路455号光启城5层526-1、526-2商铺",
+      "price": null,
+      "evidence": "Trip单店资料及门店目录交叉确认；不同资料出现自助烤肉名称，未推定当前餐型或价格。",
+      "urls": [
+        "https://us.trip.com/restaurant/china/shanghai/detail/restaurant-61285153/",
+        "https://www.zaoseo.com/place/1683312",
+        "https://www.dianping.com/shop/k63aMJRBu50z7FNR/photos"
+      ]
+    },
+    {
+      "id": "gqc-haidilao-f5",
+      "name": "海底捞火锅（光启城店）",
+      "address": "上海市徐汇区宜山路455号光启城时尚购物中心F5",
+      "price": {
+        "amount": 110,
+        "currency": "CNY",
+        "type": "携程用户反馈参考人均"
+      },
+      "evidence": "携程单店地址、人均；2026-01-26供应商项目文章亦提到大华光启城门店。",
+      "urls": [
+        "https://you.ctrip.com/food/shanghai2/121697955-dianping.html",
+        "https://www.morkhood.com/newslist/选择mork内循环烟罩，海底捞树餐饮排烟新标杆/"
+      ]
+    },
+    {
+      "id": "gqc-xiaomaodiaoyu-yishan",
+      "name": "小猫钓渝",
+      "address": "上海市徐汇区宜山路333号汇鑫国际2号楼1楼",
+      "price": {
+        "min": 100,
+        "max": 150,
+        "currency": "CNY",
+        "type": "订餐平台人均区间，应用单值budget保持0"
+      },
+      "evidence": "订餐小秘书单店地址和价格区间；页面有近期可订日期。",
+      "urls": [
+        "https://m.xiaomishu.com/shop/S51I24Q20179/"
+      ]
+    },
+    {
+      "id": "gqc-liuzhu-yishan",
+      "name": "留柱小馆（宜山路店）",
+      "address": "上海市徐汇区宜山路333号汇鑫国际二号楼1楼106室",
+      "price": {
+        "min": 100,
+        "max": 150,
+        "currency": "CNY",
+        "type": "订餐平台人均区间，应用单值budget保持0"
+      },
+      "evidence": "订餐小秘书单店地址和价格区间；页面显示11月7日可订。",
+      "urls": [
+        "https://m.xiaomishu.com/shop/P04K28A47112/"
+      ]
+    },
+    {
+      "id": "gqc-laoba-nanyang",
+      "name": "老爸厨房（南洋1931店）",
+      "address": "上海市徐汇区裕德路125号南洋1931商场1层16、17号单元",
+      "price": {
+        "amount": 102,
+        "currency": "CNY",
+        "type": "平台参考人均"
+      },
+      "evidence": "携程单店资料，并有2025-02-25上海徐汇发布探店报道交叉确认。",
+      "urls": [
+        "https://gs.ctrip.com/html5/you/foods/fooddetail/2/22641173.html",
+        "https://sghexport.shobserver.com/html/baijiahao/2025/02/25/1519401.html"
+      ]
+    }
+  ],
+  "deferred": [
+    "小杨生煎、松鹤楼仅找到较旧开店资料，暂未加入。",
+    "大鼓米线与较新的成都你六姐资料显示相同铺位，暂未加入。",
+    "御之面师、大米先生、老乡鸡、德有邻仅有周边目录，未核实单店地址，暂未加入。"
+  ]
+}

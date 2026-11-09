@@ -1,0 +1,12 @@
+{
+  "name": "food-time-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "饭点：让饭团小厨帮你选一顿，独立本地设计版本。",
+  "scripts": {
+    "dev": "node serve.cjs",
+    "test": "node --test tests/core.test.cjs tests/state-codec.test.cjs tests/storage.test.cjs",
+    "build": "node build.cjs",
+    "build:windows": "node desktop/build-windows.cjs"
+  }
+}

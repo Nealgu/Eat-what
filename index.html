@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="theme-color" content="#182326">
+  <meta name="description" content="让饭团小厨帮你选一顿。设置距离和预算，从自己喜欢的餐馆里找到今天的答案。">
+  <title>饭点 · 今天吃点什么</title>
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="./assets/rice-chef-evening.svg" as="image" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./dark.css">
+  <script src="./data.js" defer></script>
+  <script src="./catalog-data.js" defer></script>
+  <script src="./core.js" defer></script>
+  <script src="./state-codec.js" defer></script>
+  <script src="./storage.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body class="is-loading">
+  <svg class="icon-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.7 6.3L21 12l-6.3 2.7L12 21l-2.7-6.3L3 12l6.3-2.7L12 3Z"/><path d="m20 2 .6 1.4L22 4l-1.4.6L20 6l-.6-1.4L18 4l1.4-.6L20 2Z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="15" rx="3"/><path d="M4 6V5a2 2 0 0 1 2-2h12M17 11h4v6h-4a3 3 0 0 1 0-6Z"/><path d="M17 14h.01"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 3h12a2 2 0 0 1 2 2v16H6a3 3 0 0 1-3-3V6a3 3 0 0 1 2-3Z"/><path d="M3 17h16M8 7h6M8 10h4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-bowl" viewBox="0 0 24 24"><path d="M3 12h18M4 12c1 6 4 9 8 9s7-3 8-9M8 7c-2-2 2-2 0-4M13 7c-2-2 2-2 0-4M18 7c-2-2 2-2 0-4"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="m15 4 5 5M4 20l5-1L21 7a2 2 0 0 0-5-5L4 14v6ZM13 21h8"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7V4h6l3 3h9v14H3V7Z"/></symbol>
+  </defs></svg>
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="饭点首页"><span class="brand-logo" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M9 26c-4-5 3-17 8-20 2-1 4-1 6 0 5 3 12 15 8 20-4 6-18 6-22 0Z" fill="#fffdf5"/><rect x="16" y="21" width="9" height="11" rx="2" fill="#3e5b49"/><circle cx="15" cy="18" r="1.2" fill="#3e5b49"/><circle cx="26" cy="18" r="1.2" fill="#3e5b49"/></svg></span><span>饭点<span class="brand-en">a little food luck</span></span></a>
+      <nav class="header-actions" aria-label="应用菜单">
+        <button class="nav-button" data-open="library"><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg><span>餐馆清单</span></button>
+        <button class="nav-button" data-open="history"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span>选择记录</span><span id="history-count" class="count-badge" hidden>0</span></button>
+      </nav>
+    </header>
+
+    <aside class="storage-warning" id="storage-warning" role="alert" hidden><strong>本地数据提示</strong><p id="storage-warning-text"></p></aside>
+
+    <main>
+      <section class="intro" aria-labelledby="main-title">
+        <p class="eyebrow"><span></span> 又到了，好好吃饭的时间</p>
+        <h1 id="main-title">今天，<span>吃点什么？<svg viewBox="0 0 220 13" aria-hidden="true"><path d="M3 8Q105 0 217 8"/></svg></span></h1>
+        <p class="intro-text">不纠结了，让小饭团帮你选一顿。</p>
+      </section>
+
+      <section class="oracle" aria-label="饭团小厨为你选餐馆">
+        <div class="scene" id="scene">
+          <svg class="scene-decor" viewBox="0 0 700 330" aria-hidden="true"><ellipse cx="350" cy="206" rx="255" ry="83" fill="none" stroke="#e6e9dd" stroke-dasharray="3 8"/><path d="m523 30 4 11 11 4-11 4-4 11-4-11-11-4 11-4Z" fill="#e8c573"/><path d="m105 149 3 8 8 3-8 3-3 8-3-8-8-3 8-3Z" fill="#c4cdaa"/><circle cx="579" cy="221" r="4" fill="#e9b394"/><circle cx="266" cy="44" r="3" fill="#d7dcbf"/><path d="M549 272c8-21 14-16 8-1 12-15 20-5 3 4" fill="#a7b59b"/></svg>
+          <div class="soft-halo halo-green"></div><div class="soft-halo halo-peach"></div>
+          <div class="speech-bubble" id="speech">这顿，交给我吧！<span aria-hidden="true">✦</span></div>
+          <div class="mascot"><span class="mascot-shadow"></span><img class="mascot-art" src="./assets/rice-chef-evening.svg" width="260" height="290" alt="举着小勺子的饭团小厨" draggable="false"></div>
+          <div class="answer-plate">
+            <svg class="utensil fork" viewBox="0 0 24 145" aria-hidden="true"><path d="M4 2v35c0 14 16 14 16 0V2M12 2v141"/></svg>
+            <svg class="utensil spoon" viewBox="0 0 26 145" aria-hidden="true"><ellipse cx="13" cy="22" rx="11" ry="20"/><path d="M13 43v100"/></svg>
+            <div class="plate-content"><span class="plate-eyebrow">今日吃饭签</span><div class="plate-icon"><svg class="icon" aria-hidden="true"><use href="#i-bowl"/></svg></div><strong class="plate-name" id="plate-name">吃点好的</strong><span class="plate-caption" id="plate-caption">一顿好饭，一点好运</span></div>
+          </div>
+        </div>
+
+        <div class="filter-pills" aria-label="当前选餐条件">
+          <button class="filter-pill" data-open="preferences"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg><span id="distance-summary">1 km 内</span><svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+          <button class="filter-pill" data-open="preferences"><svg class="icon" aria-hidden="true"><use href="#i-wallet"/></svg><span id="budget-summary">¥60 / 人</span><svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+          <button class="filter-pill category-pill" data-open="preferences"><span id="category-summary">口味随缘</span><svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        </div>
+        <button id="draw-button" class="draw-button" disabled><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg><span id="draw-label">帮我选一顿</span><svg class="icon draw-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        <p class="availability" id="availability" role="status">正在整理餐馆清单…</p>
+      </section>
+
+      <section class="result-card" id="result-card" aria-label="选餐结果" aria-live="polite" aria-atomic="true">
+        <div class="result-icon"><svg class="icon" aria-hidden="true"><use href="#i-bowl"/></svg></div>
+        <div class="result-copy"><span class="result-kicker" id="result-kicker">这一餐的小期待</span><h2 id="result-name">好吃的答案，马上就来</h2><p id="result-meta">选好范围，按一下，让快乐开饭。</p></div>
+        <button class="confirm-button" id="confirm-button" hidden>就吃这家 <svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></button>
+      </section>
+    </main>
+    <footer class="site-footer"><span class="footer-line"></span><span>好好吃饭，慢慢生活。</span><span class="footer-line"></span></footer>
+  </div>
+
+  <dialog id="preferences" class="sheet preferences-sheet" aria-labelledby="preferences-title">
+    <header class="sheet-header"><div><p class="sheet-eyebrow">给美味画个小圈</p><h2 id="preferences-title">这一顿，想怎么吃？</h2></div><button class="icon-button" data-close aria-label="关闭筛选"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></header>
+    <div class="sheet-body">
+      <div class="range-control"><div class="field-heading"><label for="distance-range">走多远</label><output id="distance-output" for="distance-range">1 km</output></div><input id="distance-range" type="range" min="0.5" max="5" step="0.5" value="1"><div class="range-labels"><span>附近走走</span><span>远一点也行</span></div></div>
+      <div class="range-control"><div class="field-heading"><label for="budget-range">人均预算</label><output id="budget-output" for="budget-range">¥60</output></div><input id="budget-range" type="range" min="10" max="200" step="10" value="60"><div class="range-labels"><span>简单吃点</span><span>犒劳自己</span></div></div>
+      <fieldset class="category-fieldset"><legend>今天的口味</legend><div class="category-options" id="category-options"></div></fieldset>
+      <p class="filter-count" id="filter-count"></p>
+    </div>
+    <footer class="sheet-footer"><button class="text-button" id="reset-filters">恢复随缘</button><button class="solid-button" id="apply-preferences">就按这个来 <svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></button></footer>
+  </dialog>
+
+  <dialog id="library" class="sheet library-sheet" aria-labelledby="library-title">
+    <header class="sheet-header"><div><p class="sheet-eyebrow">熟悉的店，也能吃出新鲜感</p><h2 id="library-title">我的餐馆清单 <span id="library-count"></span></h2></div><button class="icon-button" data-close aria-label="关闭餐馆清单"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></header>
+    <div class="sheet-body">
+      <label class="search-field"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg><input id="restaurant-search" type="search" placeholder="找一家喜欢的店" aria-label="搜索餐馆"></label>
+      <div class="undo-notice" id="undo-notice" role="status" hidden><span id="undo-message"></span><button class="text-button" id="undo-delete">撤销移除</button></div>
+      <div class="restaurant-list" id="restaurant-list"></div>
+      <details class="add-restaurant"><summary><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>加一家喜欢的店</summary><form id="add-form"><label class="full-field">餐馆名称<input name="name" required maxlength="50" placeholder="比如：街角那家小面馆"></label><label>分类<input name="category" maxlength="20" placeholder="面食 / 炒菜 / …"></label><label>人均预算（元）<input name="budget" type="number" min="0" max="10000" step="1" placeholder="不知道可不填"></label><label>距离（km）<input name="distanceKm" type="number" min="0" max="1000" step="0.01" placeholder="不知道可不填"></label><label>备注<input name="note" maxlength="80" placeholder="记下招牌菜"></label><button class="solid-button full-field" type="submit">加入清单 <svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></form></details>
+    </div>
+    <footer class="sheet-footer library-footer"><span class="local-note" data-storage-note>数据保存在当前浏览器</span><div class="storage-actions"><button class="text-button" id="export-button"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>导出完整备份</button><button class="text-button" id="import-button"><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>恢复备份</button><button class="text-button" id="data-directory" hidden><svg class="icon" aria-hidden="true"><use href="#i-folder"/></svg>数据文件夹</button></div></footer>
+  </dialog>
+
+  <dialog id="restaurant-editor" class="sheet editor-sheet" aria-labelledby="editor-title">
+    <header class="sheet-header"><div><p class="sheet-eyebrow">喜欢的店，认真记下来</p><h2 id="editor-title">编辑餐馆</h2></div><button class="icon-button" data-close aria-label="关闭餐馆编辑"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></header>
+    <form id="edit-form">
+      <div class="sheet-body editor-fields"><label class="full-field">餐馆名称<input name="name" required maxlength="50" autocomplete="off"></label><label>分类<input name="category" maxlength="20" placeholder="面食 / 炒菜 / …"></label><label>人均预算（元）<input name="budget" type="number" min="0" max="10000" step="0.01" placeholder="不知道可不填"></label><label>距离（km）<input name="distanceKm" type="number" min="0" max="1000" step="0.01" placeholder="不知道可不填"></label><label>备注<input name="note" maxlength="80" placeholder="记下招牌菜"></label><p class="editor-note full-field">修改餐馆信息会保留之前的选择记录。</p></div>
+      <footer class="sheet-footer"><button class="text-button" type="button" data-close>取消</button><button class="solid-button" type="submit">保存修改 <svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></button></footer>
+    </form>
+  </dialog>
+
+  <dialog id="history" class="sheet history-sheet" aria-labelledby="history-title">
+    <header class="sheet-header"><div><p class="sheet-eyebrow">每一顿，都有个小决定</p><h2 id="history-title">我的选择记录</h2></div><button class="icon-button" data-close aria-label="关闭选择记录"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></header>
+    <div class="sheet-body" id="history-list"></div>
+    <footer class="sheet-footer"><span class="local-note">点「就吃这家」后，会记在这里</span><button class="text-button" id="clear-history">清空记录</button></footer>
+  </dialog>
+  <dialog id="restore-preview" class="sheet confirmation-sheet" aria-labelledby="restore-title">
+    <header class="sheet-header"><div><p class="sheet-eyebrow">先确认，再恢复</p><h2 id="restore-title">恢复这份备份？</h2></div><button class="icon-button" data-close aria-label="取消恢复备份"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></header>
+    <div class="sheet-body"><div class="backup-stats"><div><strong id="restore-restaurant-count">0</strong><span>家餐馆</span></div><div><strong id="restore-history-count">0</strong><span>条选择记录</span></div></div><p class="backup-date" id="restore-date"></p><p class="restore-warning">恢复后会替换当前餐馆清单、筛选设置与选择记录。确认前不会改动现有数据。</p><p class="editor-note">如果需要保留当前内容，可以先取消并导出完整备份。</p></div>
+    <footer class="sheet-footer"><button class="text-button" data-close>先不恢复</button><button class="solid-button" id="restore-confirm">确认恢复 <svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></button></footer>
+  </dialog>
+  <dialog id="clear-history-dialog" class="sheet confirmation-sheet" aria-labelledby="clear-history-title">
+    <header class="sheet-header"><div><p class="sheet-eyebrow">给记录留一点余地</p><h2 id="clear-history-title">清空选择记录？</h2></div><button class="icon-button" data-close aria-label="取消清空记录"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></header>
+    <div class="sheet-body"><p class="restore-warning">只清空选择记录，餐馆清单和筛选设置会保留。</p><p class="editor-note">想留住这些记录，可以先导出完整备份。</p></div>
+    <footer class="sheet-footer"><button class="text-button" data-close>保留记录</button><button class="solid-button" id="clear-history-confirm">确认清空</button></footer>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
+

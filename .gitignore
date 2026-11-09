@@ -1,0 +1,25 @@
+# Local dependencies, generated previews and verification profiles
+node_modules/
+.deps/
+.artifacts/
+dist/
+design/
+
+# Keep the distributable packages, not the unpacked app or local data
+release/*
+!release/饭点-*-安装.exe
+!release/饭点-*-Windows-x64.zip
+!release/SHA256SUMS.txt
+!release/build-info.json
+!release/验证说明.txt
+
+.env
+.env.*
+*.log
+*.tmp
+state.json
+state.previous.json
+state.corrupt-*.json
+WebView2/
+.DS_Store
+Thumbs.db

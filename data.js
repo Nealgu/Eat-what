@@ -1,0 +1,281 @@
+window.INITIAL_RESTAURANTS = [
+  {
+    "id": "6194aff0-3548-4ccd-87c5-f1c4a35a29da",
+    "name": "沪小宴",
+    "category": "炒菜",
+    "distanceKm": 0.2,
+    "budget": 28,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "b841c019-966e-4803-bcbd-a1fbf008c1b0",
+    "name": "丸饼炙造",
+    "category": "日料",
+    "distanceKm": 1.8,
+    "budget": 82,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "9f48e618-6aaa-4db4-b07b-d12fb4eaee24",
+    "name": "避风塘",
+    "category": "炒菜",
+    "distanceKm": 0.45,
+    "budget": 55,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "747b1edd-816e-4a8c-b966-3db2b5adb7b9",
+    "name": "大嘴巴干锅牛蛙",
+    "category": "川味",
+    "distanceKm": 0.3,
+    "budget": 48,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "2a565492-fb56-4505-a077-3a0d2fc92d86",
+    "name": "玺炖",
+    "category": "铁锅炖",
+    "distanceKm": 0.3,
+    "budget": 36,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "6a5f71b4-b144-4cf8-853f-26f898fc956f",
+    "name": "遇见小面",
+    "category": "面食",
+    "distanceKm": 0.35,
+    "budget": 96,
+    "note": "辣，面",
+    "enabled": true
+  },
+  {
+    "id": "8bcbcb38-f315-4320-ba98-f1ce648d0e81",
+    "name": "胡子大厨",
+    "category": "湘菜",
+    "distanceKm": 0.45,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "59ba5ab9-fd52-487c-b00a-f4718b07e499",
+    "name": "佳家汤包",
+    "category": "小吃",
+    "distanceKm": 0.35,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "ac5e6136-6f96-45d0-927e-f460aa024305",
+    "name": "麦当劳",
+    "category": "快餐",
+    "distanceKm": 0.4,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "0ba79b84-2926-49c2-beb0-ab997b1c6a31",
+    "name": "肯德基",
+    "category": "快餐",
+    "distanceKm": 0.25,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "1b52fb9b-5c23-448a-96fa-244037fde699",
+    "name": "小满手工粉",
+    "category": "米粉",
+    "distanceKm": 0.4,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "ad85e962-0988-46ff-9ae7-fedd967ef202",
+    "name": "醉芙蓉",
+    "category": "炒菜",
+    "distanceKm": 0.45,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "aad33f40-672a-47ba-bde5-d6f420d889f0",
+    "name": "青花椒秘制烤鱼",
+    "category": "烤鱼",
+    "distanceKm": 0.4,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "bd8191b3-ad08-402d-8f03-c7de9bcc6c5c",
+    "name": "小菜园新徽菜",
+    "category": "炒菜",
+    "distanceKm": 0.4,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "1a7c0acb-5684-422f-b5c0-9b79b6c91228",
+    "name": "杨记牛蛙大肠面",
+    "category": "面食",
+    "distanceKm": 0.25,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "ca89839f-2218-49dc-bfb6-e9384511363f",
+    "name": "和府捞面",
+    "category": "面食",
+    "distanceKm": 0,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "7d8a79c9-0f72-42c4-add9-3b1fa4855444",
+    "name": "烧腊梁 黑金卤肉饭",
+    "category": "烧腊",
+    "distanceKm": 0,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "cdeb4370-3f5c-45da-bc5d-15e2d010cbec",
+    "name": "老盛昌",
+    "category": "",
+    "distanceKm": 0.25,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "f4684cbf-9a9d-4f1c-9c70-513e52b0469d",
+    "name": "霸碗盖码饭",
+    "category": "盖浇饭",
+    "distanceKm": 0.3,
+    "budget": 0,
+    "note": "",
+    "enabled": true
+  },
+  {
+    "id": "ad15ff9b-605d-45ce-9ff5-b2f8c4a3c927",
+    "name": "对酒当歌",
+    "category": "川菜",
+    "distanceKm": 0.29,
+    "budget": 0,
+    "note": "辣",
+    "enabled": true
+  },
+  {
+    "id": "gqc-zhouzhenzhen-b2",
+    "name": "周真真南昌拌粉·瓦罐汤（光启城店）",
+    "category": "米粉",
+    "distanceKm": 0,
+    "budget": 0,
+    "note": "宜山路455号光启城B2层68–70号；南昌拌粉、瓦罐汤。",
+    "enabled": true
+  },
+  {
+    "id": "gqc-qiyuefen-xuhong",
+    "name": "柒月粉（徐虹中路店）",
+    "category": "米粉",
+    "distanceKm": 0,
+    "budget": 0,
+    "note": "徐虹中路26-7号；粉面小吃，人均与步行距离待补充。",
+    "enabled": true
+  },
+  {
+    "id": "gqc-dicos-yishan",
+    "name": "德克士（宜山路店）",
+    "category": "快餐",
+    "distanceKm": 0,
+    "budget": 31,
+    "note": "凯旋路2561号-2；携程参考人均¥31，非实时报价。",
+    "enabled": true
+  },
+  {
+    "id": "gqc-liujie-b1",
+    "name": "成都你六姐（光启城店）",
+    "category": "冒菜",
+    "distanceKm": 0,
+    "budget": 0,
+    "note": "宜山路455号光启城B1层74–75号；牛肉冒菜、麻辣香锅。",
+    "enabled": true
+  },
+  {
+    "id": "gqc-pizzahut-kaijin",
+    "name": "必胜客（凯进·光启城店）",
+    "category": "西餐",
+    "distanceKm": 0,
+    "budget": 0,
+    "note": "宜山路455号光启城B2；公开门店资料亦称凯进店。",
+    "enabled": true
+  },
+  {
+    "id": "gqc-hangongyan-f5",
+    "name": "韩宫宴烤肉（光启城店）",
+    "category": "烤肉",
+    "distanceKm": 0,
+    "budget": 0,
+    "note": "宜山路455号光启城5楼528；烤肉、石锅拌饭。",
+    "enabled": true
+  },
+  {
+    "id": "gqc-xinshiqi-f5",
+    "name": "新石器烤肉（光启城店）",
+    "category": "烤肉",
+    "distanceKm": 0,
+    "budget": 0,
+    "note": "宜山路455号光启城5楼526-1、526-2；餐型与消费以门店为准。",
+    "enabled": true
+  },
+  {
+    "id": "gqc-haidilao-f5",
+    "name": "海底捞火锅（光启城店）",
+    "category": "火锅",
+    "distanceKm": 0,
+    "budget": 110,
+    "note": "宜山路455号光启城5楼；携程参考人均¥110，非实时报价。",
+    "enabled": true
+  },
+  {
+    "id": "gqc-xiaomaodiaoyu-yishan",
+    "name": "小猫钓渝",
+    "category": "川菜",
+    "distanceKm": 0,
+    "budget": 0,
+    "note": "宜山路333号汇鑫国际2号楼1楼；川湘菜，平台参考¥100–150/人。",
+    "enabled": true
+  },
+  {
+    "id": "gqc-liuzhu-yishan",
+    "name": "留柱小馆（宜山路店）",
+    "category": "农家菜",
+    "distanceKm": 0,
+    "budget": 0,
+    "note": "宜山路333号汇鑫国际2号楼1楼106室；皖南土菜，平台参考¥100–150/人。",
+    "enabled": true
+  },
+  {
+    "id": "gqc-laoba-nanyang",
+    "name": "老爸厨房（南洋1931店）",
+    "category": "本帮菜",
+    "distanceKm": 0,
+    "budget": 102,
+    "note": "裕德路125号南洋1931商场1层16、17单元；携程参考人均¥102，非实时报价。",
+    "enabled": true
+  }
+];
