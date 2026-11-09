@@ -31,24 +31,16 @@ summary:focus-visible {
 .brand-logo rect,
 .brand-logo circle { fill: #31564f; }
 
-.brand-en,
 .nav-button,
-.eyebrow,
 .intro-text,
 .availability,
 .result-kicker,
-.result-copy p,
-.site-footer { color: var(--muted); }
+.result-copy p { color: var(--muted); }
 
 .nav-button:hover,
 .count-badge {
   color: var(--ink);
   background: var(--tint);
-}
-
-.eyebrow span {
-  background: var(--green);
-  box-shadow: 0 0 0 4px #9db49f16;
 }
 
 h1 > span > svg { stroke: #525957; }
@@ -194,8 +186,6 @@ h1 > span > svg { stroke: #525957; }
 .confirm-button:hover:not(:disabled) { background: #435448; }
 .confirm-button.is-undo { background: transparent; color: var(--muted); }
 .confirm-button.is-undo:hover:not(:disabled) { background: var(--surface-raised); color: var(--ink); }
-.footer-line { background: var(--line); }
-
 /* Dialogs, inputs and feedback */
 .sheet {
   --control-line: #6c827c;

@@ -16,7 +16,7 @@ namespace FoodTime.Desktop
     internal sealed class NearbyService
     {
         private const string Endpoint = "https://overpass.private.coffee/api/interpreter";
-        private const string UserAgent = "FoodTime/1.2.1 (+https://github.com/Nealgu/Eat-what)";
+        private const string UserAgent = "FoodTime/1.2.2 (+https://github.com/Nealgu/Eat-what)";
         private const int TimeoutMs = 15000;
         private const int MaxResponseBytes = 2 * 1024 * 1024;
         private const int ResultLimit = 25;

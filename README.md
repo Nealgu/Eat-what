@@ -4,15 +4,15 @@
 
 默认使用深色界面与 Logo 同款珊瑚橘按钮。内置上海宜山路光启城周边 31 家餐馆，也可以添加自己的清单。
 
-[下载 Windows 安装版](https://github.com/Nealgu/Eat-what/raw/refs/heads/main/release/饭点-1.2.1-安装.exe) · [下载免安装 ZIP](https://github.com/Nealgu/Eat-what/raw/refs/heads/main/release/饭点-1.2.1-Windows-x64.zip) · [SHA-256 校验码](release/SHA256SUMS.txt)
+[下载 Windows 安装版](https://github.com/Nealgu/Eat-what/raw/refs/heads/main/release/饭点-1.2.2-安装.exe) · [下载免安装 ZIP](https://github.com/Nealgu/Eat-what/raw/refs/heads/main/release/饭点-1.2.2-Windows-x64.zip) · [SHA-256 校验码](release/SHA256SUMS.txt)
 
-![饭点 Windows 实机截图：深色界面与珊瑚橘按钮](docs/screenshot.png)
+[查看早期版本截图](docs/screenshot.png)
 
 ## 安装或直接运行
 
-- 打开 `release/饭点-1.2.1-安装.exe` 安装，可创建桌面快捷方式和开始菜单入口，并提供卸载程序。
-- 完整解压 `release/饭点-1.2.1-Windows-x64.zip` 后可直接打开 `饭点.exe`。请将 DLL 和 `web` 文件夹留在程序旁边。
-- 从源码构建后可打开 `release/饭点-1.2.1-Windows-x64/饭点.exe`。
+- 打开 `release/饭点-1.2.2-安装.exe` 安装，可创建桌面快捷方式和开始菜单入口，并提供卸载程序。
+- 完整解压 `release/饭点-1.2.2-Windows-x64.zip` 后可直接打开 `饭点.exe`。请将 DLL 和 `web` 文件夹留在程序旁边。
+- 从源码构建后可打开 `release/饭点-1.2.2-Windows-x64/饭点.exe`。
 
 运行需要 Windows x64、.NET Framework 4.8 与 Microsoft Edge WebView2 Runtime。若缺少 WebView2，应用会显示微软官方安装入口。当前构建未做商业代码签名。
 

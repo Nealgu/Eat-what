@@ -20,7 +20,7 @@ internal static class Uninstall
             try { Cleanup(); return 0; } catch { return 1; }
         }
         string ownDirectory = Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory).TrimEnd(Path.DirectorySeparatorChar);
-        string expected = Path.Combine(Root,"app-1.2.1");
+        string expected = Path.Combine(Root,"app-1.2.2");
         if (!String.Equals(ownDirectory,expected,StringComparison.OrdinalIgnoreCase)) {
             MessageBox.Show("这是免安装版本，关闭饭点后删除程序文件夹即可。\r\n个人清单和记录保存在独立的数据目录，不会随程序文件夹删除。","饭点"); return 0;
         }
@@ -35,7 +35,7 @@ internal static class Uninstall
     }
     private static void Cleanup()
     {
-        string appFolder = Path.Combine(Root,"app-1.2.1");
+        string appFolder = Path.Combine(Root,"app-1.2.2");
         string prefix = Path.GetFullPath(appFolder).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
         string manifest = Path.Combine(appFolder,"install-files.json");
         if (!File.Exists(manifest)) throw new InvalidDataException("缺少安装文件列表。");
