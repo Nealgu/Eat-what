@@ -161,6 +161,7 @@
   root.FoodTimeStorage = Object.freeze({
     load, save, exportData, pickImportFile,
     openDataDirectory: () => native ? request('openDataDirectory') : Promise.resolve(false),
+    searchNearby: (latitude, longitude, radiusMeters) => request('searchNearby', { latitude, longitude, radiusMeters }, 30000),
     isNative: native
   });
 })(window);

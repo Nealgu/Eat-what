@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="./dark.css">
   <script src="./data.js" defer></script>
   <script src="./catalog-data.js" defer></script>
+  <script src="./places.js" defer></script>
   <script src="./core.js" defer></script>
   <script src="./state-codec.js" defer></script>
   <script src="./storage.js" defer></script>
@@ -28,6 +29,7 @@
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
     <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 4 4 9l5 5M4 9h10a5 5 0 0 1 0 10h-2"/></symbol>
     <symbol id="i-bowl" viewBox="0 0 24 24"><path d="M3 12h18M4 12c1 6 4 9 8 9s7-3 8-9M8 7c-2-2 2-2 0-4M13 7c-2-2 2-2 0-4M18 7c-2-2 2-2 0-4"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
@@ -71,16 +73,29 @@
 
         <div class="filter-pills" aria-label="当前选餐条件">
           <button class="filter-pill" data-open="preferences"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg><span id="distance-summary">1 km 内</span><svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"/></svg></button>
-          <button class="filter-pill" data-open="preferences"><svg class="icon" aria-hidden="true"><use href="#i-wallet"/></svg><span id="budget-summary">¥60 / 人</span><svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+          <button class="filter-pill" id="budget-filter" data-open="preferences"><svg class="icon" aria-hidden="true"><use href="#i-wallet"/></svg><span id="budget-summary">¥60 / 人</span><svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"/></svg></button>
           <button class="filter-pill category-pill" data-open="preferences"><span id="category-summary">口味随缘</span><svg class="icon chevron" aria-hidden="true"><use href="#i-chevron"/></svg></button>
         </div>
         <button id="draw-button" class="draw-button" disabled><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg><span id="draw-label">帮我选一顿</span><svg class="icon draw-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></button>
-        <p class="availability" id="availability" role="status">正在整理餐馆清单…</p>
+        <div class="availability-row">
+          <p class="availability" id="availability" role="status">正在整理餐馆清单…</p>
+          <div class="location-actions" id="location-actions" hidden>
+            <button class="text-button" id="open-nearby" type="button"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg><span id="nearby-action-label">附近搜店</span></button>
+            <button class="text-button" id="use-library" type="button" hidden>回到我的清单</button>
+          </div>
+        </div>
+        <a class="map-credit" id="nearby-credit" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" hidden>© OpenStreetMap 贡献者</a>
       </section>
 
       <section class="result-card" id="result-card" aria-label="选餐结果" aria-live="polite" aria-atomic="true">
         <div class="result-icon"><svg class="icon" aria-hidden="true"><use href="#i-bowl"/></svg></div>
-        <div class="result-copy"><span class="result-kicker" id="result-kicker">这一餐的小期待</span><h2 id="result-name">好吃的答案，马上就来</h2><p id="result-meta">选好范围，按一下，让快乐开饭。</p></div>
+        <div class="result-copy">
+          <span class="result-kicker" id="result-kicker">这一餐的小期待</span>
+          <h2 id="result-name">好吃的答案，马上就来</h2>
+          <p id="result-meta">选好范围，按一下，让快乐开饭。</p>
+          <p id="result-address" class="result-address" hidden></p>
+          <a id="result-map" class="map-link" target="_blank" rel="noopener noreferrer" hidden>查看地图 <span aria-hidden="true">↗</span></a>
+        </div>
         <button class="confirm-button" id="confirm-button" hidden>就吃这家 <svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></button>
       </section>
     </main>
@@ -91,11 +106,29 @@
     <header class="sheet-header"><div><p class="sheet-eyebrow">给美味画个小圈</p><h2 id="preferences-title">这一顿，想怎么吃？</h2></div><button class="icon-button" data-close aria-label="关闭筛选"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></header>
     <div class="sheet-body">
       <div class="range-control"><div class="field-heading"><label for="distance-range">走多远</label><output id="distance-output" for="distance-range">1 km</output></div><input id="distance-range" type="range" min="0.5" max="5" step="0.5" value="1"><div class="range-labels"><span>附近走走</span><span>远一点也行</span></div></div>
-      <div class="range-control"><div class="field-heading"><label for="budget-range">人均预算</label><output id="budget-output" for="budget-range">¥60</output></div><input id="budget-range" type="range" min="10" max="200" step="10" value="60"><div class="range-labels"><span>简单吃点</span><span>犒劳自己</span></div></div>
+      <div class="range-control" id="budget-control"><div class="field-heading"><label for="budget-range">人均预算</label><output id="budget-output" for="budget-range">¥60</output></div><input id="budget-range" type="range" min="10" max="200" step="10" value="60"><div class="range-labels"><span>简单吃点</span><span>犒劳自己</span></div></div>
       <fieldset class="category-fieldset"><legend>今天的口味</legend><div class="category-options" id="category-options"></div></fieldset>
       <p class="filter-count" id="filter-count"></p>
     </div>
     <footer class="sheet-footer"><button class="text-button" id="reset-filters">恢复随缘</button><button class="solid-button" id="apply-preferences">就按这个来 <svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></button></footer>
+  </dialog>
+
+  <dialog id="nearby" class="sheet nearby-sheet" aria-labelledby="nearby-title">
+    <header class="sheet-header">
+      <div><p class="sheet-eyebrow">换个地方，也能好好吃饭</p><h2 id="nearby-title">附近搜店</h2></div>
+      <button class="icon-button" data-close aria-label="关闭附近搜店"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </header>
+    <div class="sheet-body nearby-body">
+      <p>授权后，饭点会向地图查询服务发送约 1 公里网格的位置，再在本机筛选直线 <strong id="nearby-radius">1 km</strong> 内的最多 25 家餐馆。</p>
+      <div class="nearby-sources">
+        <a class="map-credit" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap 贡献者</a>
+        <a class="map-credit" href="https://overpass.private.coffee/" target="_blank" rel="noopener noreferrer">查询服务与隐私</a>
+      </div>
+      <p class="nearby-status" id="nearby-status" role="status"></p>
+    </div>
+    <footer class="sheet-footer">
+      <button class="solid-button" id="find-nearby" type="button" disabled>定位并搜索 <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg></button>
+    </footer>
   </dialog>
 
   <dialog id="library" class="sheet library-sheet" aria-labelledby="library-title">
@@ -104,7 +137,7 @@
       <label class="search-field"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg><input id="restaurant-search" type="search" placeholder="找一家喜欢的店" aria-label="搜索餐馆"></label>
       <div class="undo-notice" id="undo-notice" role="status" hidden><span id="undo-message"></span><button class="text-button" id="undo-delete">撤销移除</button></div>
       <div class="restaurant-list" id="restaurant-list"></div>
-      <details class="add-restaurant"><summary><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>加一家喜欢的店</summary><form id="add-form"><label class="full-field">餐馆名称<input name="name" required maxlength="50" placeholder="比如：街角那家小面馆"></label><label>分类<input name="category" maxlength="20" placeholder="面食 / 炒菜 / …"></label><label>人均预算（元）<input name="budget" type="number" min="0" max="10000" step="1" placeholder="不知道可不填"></label><label>距离（km）<input name="distanceKm" type="number" min="0" max="1000" step="0.01" placeholder="不知道可不填"></label><label>备注<input name="note" maxlength="80" placeholder="记下招牌菜"></label><button class="solid-button full-field" type="submit">加入清单 <svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></form></details>
+      <details class="add-restaurant"><summary><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>加一家喜欢的店</summary><form id="add-form"><label class="full-field">餐馆名称<input name="name" required maxlength="50" placeholder="比如：街角那家小面馆"></label><label class="full-field">地址<input name="address" maxlength="160" placeholder="街道门牌、商场或楼层"></label><label>分类<input name="category" maxlength="20" placeholder="面食 / 炒菜 / …"></label><label>人均预算（元）<input name="budget" type="number" min="0" max="10000" step="1" placeholder="不知道可不填"></label><label>距离（km）<input name="distanceKm" type="number" min="0" max="1000" step="0.01" placeholder="不知道可不填"></label><label>备注<input name="note" maxlength="80" placeholder="记下招牌菜"></label><button class="solid-button full-field" type="submit">加入清单 <svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></form></details>
     </div>
     <footer class="sheet-footer library-footer"><span class="local-note" data-storage-note>数据保存在当前浏览器</span><div class="storage-actions"><button class="text-button" id="export-button"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>导出完整备份</button><button class="text-button" id="import-button"><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>恢复备份</button><button class="text-button" id="data-directory" hidden><svg class="icon" aria-hidden="true"><use href="#i-folder"/></svg>数据文件夹</button></div></footer>
   </dialog>
@@ -112,7 +145,7 @@
   <dialog id="restaurant-editor" class="sheet editor-sheet" aria-labelledby="editor-title">
     <header class="sheet-header"><div><p class="sheet-eyebrow">喜欢的店，认真记下来</p><h2 id="editor-title">编辑餐馆</h2></div><button class="icon-button" data-close aria-label="关闭餐馆编辑"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></header>
     <form id="edit-form">
-      <div class="sheet-body editor-fields"><label class="full-field">餐馆名称<input name="name" required maxlength="50" autocomplete="off"></label><label>分类<input name="category" maxlength="20" placeholder="面食 / 炒菜 / …"></label><label>人均预算（元）<input name="budget" type="number" min="0" max="10000" step="0.01" placeholder="不知道可不填"></label><label>距离（km）<input name="distanceKm" type="number" min="0" max="1000" step="0.01" placeholder="不知道可不填"></label><label>备注<input name="note" maxlength="80" placeholder="记下招牌菜"></label><p class="editor-note full-field">修改餐馆信息会保留之前的选择记录。</p></div>
+      <div class="sheet-body editor-fields"><label class="full-field">餐馆名称<input name="name" required maxlength="50" autocomplete="off"></label><label class="full-field">地址<input name="address" maxlength="160" placeholder="街道门牌、商场或楼层"></label><label>分类<input name="category" maxlength="20" placeholder="面食 / 炒菜 / …"></label><label>人均预算（元）<input name="budget" type="number" min="0" max="10000" step="0.01" placeholder="不知道可不填"></label><label>距离（km）<input name="distanceKm" type="number" min="0" max="1000" step="0.01" placeholder="不知道可不填"></label><label>备注<input name="note" maxlength="80" placeholder="记下招牌菜"></label><p class="editor-note full-field">修改餐馆信息会保留之前的选择记录。</p></div>
       <footer class="sheet-footer"><button class="text-button" type="button" data-close>取消</button><button class="solid-button" type="submit">保存修改 <svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></button></footer>
     </form>
   </dialog>

@@ -42,7 +42,7 @@ internal static class Installer
         install.Click += delegate {
             install.Enabled = false;
             try {
-                string appFolder = Path.Combine(InstallRoot,"app-1.0.0");
+                string appFolder = Path.Combine(InstallRoot,"app-1.2.1");
                 Extract(appFolder);
                 string appExe = Path.Combine(appFolder,"饭点.exe");
                 string menu = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs),"FoodTime");
@@ -51,7 +51,7 @@ internal static class Installer
                 CreateShortcut(Path.Combine(menu,"卸载饭点.lnk"),Path.Combine(appFolder,"卸载饭点.exe"),appFolder);
                 if (shortcut.Checked) CreateShortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),"饭点.lnk"),appExe,appFolder);
                 using (RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\FoodTime")) {
-                    key.SetValue("DisplayName","饭点"); key.SetValue("DisplayVersion","1.0.0"); key.SetValue("Publisher","FoodTime");
+                    key.SetValue("DisplayName","饭点"); key.SetValue("DisplayVersion","1.2.1"); key.SetValue("Publisher","FoodTime");
                     key.SetValue("InstallLocation",InstallRoot); key.SetValue("DisplayIcon",appExe + ",0");
                     key.SetValue("UninstallString","\"" + Path.Combine(appFolder,"卸载饭点.exe") + "\"");
                     key.SetValue("NoModify",1,RegistryValueKind.DWord); key.SetValue("NoRepair",1,RegistryValueKind.DWord);

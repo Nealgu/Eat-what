@@ -137,6 +137,7 @@ namespace FoodTime.Desktop
         private readonly string dataDirectory;
         private readonly string statePath;
         private readonly string previousPath;
+        private readonly NearbyService nearbyService;
         private WebView2 browser;
         private bool primaryDamaged;
         private bool initialBoundsApplied;
@@ -146,6 +147,7 @@ namespace FoodTime.Desktop
             dataDirectory = directory;
             statePath = Path.Combine(directory, "state.json");
             previousPath = Path.Combine(directory, "state.previous.json");
+            nearbyService = new NearbyService();
             Text = "饭点";
             Size = new Size(560, 900);
             MinimumSize = new Size(380, 650);
@@ -261,8 +263,13 @@ namespace FoodTime.Desktop
                 core.Settings.IsGeneralAutofillEnabled = false;
                 core.NavigationStarting += delegate(object sender, CoreWebView2NavigationStartingEventArgs args) { args.Cancel = !IsAppUri(args.Uri); };
                 core.FrameNavigationStarting += delegate(object sender, CoreWebView2NavigationStartingEventArgs args) { args.Cancel = !IsAppUri(args.Uri); };
-                core.NewWindowRequested += delegate(object sender, CoreWebView2NewWindowRequestedEventArgs args) { args.Handled = true; };
-                core.PermissionRequested += delegate(object sender, CoreWebView2PermissionRequestedEventArgs args) { args.State = CoreWebView2PermissionState.Deny; };
+                core.NewWindowRequested += OpenExternalMapLink;
+                core.PermissionRequested += delegate(object sender, CoreWebView2PermissionRequestedEventArgs args)
+                {
+                    args.SavesInProfile = false;
+                    if (args.PermissionKind != CoreWebView2PermissionKind.Geolocation || !args.IsUserInitiated || !IsAppUri(args.Uri))
+                        args.State = CoreWebView2PermissionState.Deny;
+                };
                 core.DownloadStarting += delegate(object sender, CoreWebView2DownloadStartingEventArgs args) { args.Cancel = true; };
                 core.WebMessageReceived += OnWebMessage;
                 core.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All);
@@ -292,6 +299,20 @@ namespace FoodTime.Desktop
             Uri uri;
             return Uri.TryCreate(value, UriKind.Absolute, out uri) && uri.Scheme == Uri.UriSchemeHttps &&
                 String.Equals(uri.Host, AppHost, StringComparison.OrdinalIgnoreCase) && uri.Port == 443 && String.IsNullOrEmpty(uri.UserInfo);
+        }
+
+        private void OpenExternalMapLink(object sender, CoreWebView2NewWindowRequestedEventArgs args)
+        {
+            args.Handled = true;
+            Uri uri;
+            if (!args.IsUserInitiated || !Uri.TryCreate(args.Uri, UriKind.Absolute, out uri) ||
+                uri.Scheme != Uri.UriSchemeHttps || uri.Port != 443 || !String.IsNullOrEmpty(uri.UserInfo)) return;
+            bool allowed = (uri.Host == "www.openstreetmap.org" && (uri.AbsolutePath == "/search" || uri.AbsolutePath == "/copyright" ||
+                Regex.IsMatch(uri.AbsolutePath, @"^/(node|way|relation)/[0-9]{1,18}$"))) ||
+                (uri.Host == "overpass.private.coffee" && uri.AbsolutePath == "/" && String.IsNullOrEmpty(uri.Query));
+            if (!allowed) return;
+            try { Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true }); }
+            catch { MessageBox.Show(this, "没有打开浏览器，请稍后重试。", "饭点"); }
         }
 
         private void ShowStartupError(string message, bool offerRuntimeDownload)
@@ -338,10 +359,11 @@ namespace FoodTime.Desktop
             return new JavaScriptSerializer { MaxJsonLength = MaxBytes, RecursionLimit = 64 };
         }
 
-        private void OnWebMessage(object sender, CoreWebView2WebMessageReceivedEventArgs args)
+        private async void OnWebMessage(object sender, CoreWebView2WebMessageReceivedEventArgs args)
         {
             if (!IsAppUri(args.Source)) return;
             object id = null;
+            bool nearbyCommand = false;
             try
             {
                 string raw = args.WebMessageAsJson;
@@ -355,6 +377,7 @@ namespace FoodTime.Desktop
                 id = requestId;
                 object commandValue;
                 string command = request.TryGetValue("command", out commandValue) ? commandValue as string : null;
+                nearbyCommand = command == "searchNearby";
                 object payload;
                 request.TryGetValue("payload", out payload);
                 object result;
@@ -364,6 +387,20 @@ namespace FoodTime.Desktop
                     case "save": SaveState(payload); result = true; break;
                     case "export": result = ExportBackup(payload); break;
                     case "import": result = ImportBackup(); break;
+                    case "searchNearby":
+                        IDictionary<string, object> position = payload as IDictionary<string, object>;
+                        object latitudeValue, longitudeValue, radiusValue;
+                        double latitude, longitude, radiusMeters;
+                        if (position == null || !position.TryGetValue("latitude", out latitudeValue) ||
+                            !position.TryGetValue("longitude", out longitudeValue) ||
+                            !TryFiniteNumber(latitudeValue, out latitude) || !TryFiniteNumber(longitudeValue, out longitude) ||
+                            Math.Abs(latitude) > 90 || Math.Abs(longitude) > 180)
+                            throw new InvalidDataException("没有取得有效位置，请重新定位。");
+                        if (!position.TryGetValue("radiusMeters", out radiusValue) || !TryFiniteNumber(radiusValue, out radiusMeters) ||
+                            radiusMeters < 500 || radiusMeters > 5000 || Math.Floor(radiusMeters) != radiusMeters)
+                            throw new InvalidDataException("搜索范围无效，请检查距离筛选。");
+                        result = await nearbyService.SearchAsync(latitude, longitude, (int)radiusMeters);
+                        break;
                     case "openDataDirectory":
                         Process.Start(new ProcessStartInfo(dataDirectory) { UseShellExecute = true, Verb = "open" });
                         result = true;
@@ -374,8 +411,9 @@ namespace FoodTime.Desktop
             }
             catch (Exception error)
             {
-                Program.Log(error);
-                Reply(id, false, null, error is InvalidDataException ? error.Message : "操作没有完成，请确认数据文件夹或所选文件可以正常读写。");
+                if (!nearbyCommand) Program.Log(error);
+                string fallback = nearbyCommand ? "附近搜店操作暂未完成，请稍后重试。" : "操作没有完成，请确认数据文件夹或所选文件可以正常读写。";
+                Reply(id, false, null, error is InvalidDataException ? error.Message : fallback);
             }
         }
 
@@ -474,6 +512,9 @@ namespace FoodTime.Desktop
                 if (field == "name" && Regex.Replace((string)value, "[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]", String.Empty).Trim().Length == 0)
                     throw new InvalidDataException(label + "缺少有效名称。");
             }
+            object address;
+            if (restaurant.TryGetValue("address", out address) && !(address is string))
+                throw new InvalidDataException(label + "的地址必须是文字。");
             foreach (string field in new string[] { "distanceKm", "budget" })
             {
                 object value;

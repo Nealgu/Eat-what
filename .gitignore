@@ -20,6 +20,7 @@ release/*
 state.json
 state.previous.json
 state.corrupt-*.json
+amap-key.bin
 WebView2/
 .DS_Store
 Thumbs.db

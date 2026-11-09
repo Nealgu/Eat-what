@@ -3,6 +3,7 @@
   const { normalizeRestaurant, filterRestaurants, pickRestaurant, describeDistance, describeBudget } = window.FoodOracle;
   const storage = window.FoodTimeStorage;
   const codec = window.FoodTimeState;
+  const HISTORY_LIMIT = 365;
   const defaults = { maxDistanceKm: 1, maxBudget: 60, category: 'all' };
   const $ = (selector) => document.querySelector(selector);
   const all = (selector) => [...document.querySelectorAll(selector)];
@@ -18,8 +19,26 @@
   let deletedRestaurant = null;
   let pendingImport = null;
   let isNative = false;
-  let state = { restaurants: [], filters: { ...defaults }, history: [], catalogBatches: [], phase: 'idle', selected: null, previousId: null, confirmed: false };
-  const pool = () => filterRestaurants(state.restaurants, state.filters);
+  let nearby = null;
+  let nearbyBusy = false;
+  let nearbyTicket = 0;
+  let state = { restaurants: [], filters: { ...defaults }, history: [], catalogBatches: [], phase: 'idle', selected: null, previousId: null, confirmation: null };
+  const activeRestaurants = () => nearby ? nearby.restaurants : state.restaurants;
+  const activeFilters = () => nearby ? nearby.filters : state.filters;
+  const pool = (filters = activeFilters()) => filterRestaurants(activeRestaurants(), filters);
+
+  function addressFor(item) {
+    const place = window.FOOD_TIME_PLACES?.[item.id];
+    return item.address || (place?.name === item.name ? place.address : '');
+  }
+
+  function mapUrl(item, address) {
+    const place = /^osm-(node|way|relation)-(\d{1,18})$/.exec(item.id);
+    if (place) return `https://www.openstreetmap.org/${place[1]}/${place[2]}`;
+    if (!address) return '';
+    const query = new URLSearchParams({ query: address });
+    return `https://www.openstreetmap.org/search?${query}`;
+  }
 
   function message(error, fallback) {
     return error && typeof error.message === 'string' && error.message.trim() ? error.message : fallback;
@@ -41,11 +60,15 @@
     $('#draw-button').disabled = writing || thinking || !pool().length;
     $('#draw-button').setAttribute('aria-busy', String(thinking));
     all('[data-open="preferences"], [data-open="library"], [data-edit], [data-delete], [data-toggle]').forEach((button) => { button.disabled = writing || thinking; });
-    $('#confirm-button').disabled = writing || state.confirmed || !state.selected;
+    $('#confirm-button').disabled = writing || !state.selected;
     $('#clear-history').disabled = writing || !state.history.length;
     $('#clear-history-confirm').disabled = writing || !state.history.length;
     $('#undo-delete').disabled = writing || !deletedRestaurant;
     $('#restore-confirm').disabled = writing || !pendingImport;
+    $('#open-nearby').disabled = writing || thinking;
+    $('#use-library').disabled = writing || thinking;
+    $('#find-nearby').disabled = writing || nearbyBusy;
+    $('#find-nearby').setAttribute('aria-busy', String(nearbyBusy));
     document.body.classList.toggle('is-saving', writing);
   }
 
@@ -58,14 +81,15 @@
   }
 
   function renderCategories() {
-    const active = filterDraft || state.filters;
-    const categories = [...new Set(state.restaurants.map((item) => item.category).filter(Boolean))];
+    const active = filterDraft || activeFilters();
+    const categories = [...new Set(activeRestaurants().map((item) => item.category).filter(Boolean))];
     if (active.category !== 'all' && !categories.includes(active.category)) active.category = 'all';
     $('#category-options').innerHTML = [{ value: 'all', label: '口味随缘' }, ...categories.map((name) => ({ value: name, label: name }))].map(({ value, label }) => `<button class="category-option" data-category="${escaped(value)}" aria-pressed="${active.category === value}">${escaped(label)}</button>`).join('');
   }
 
   function syncFilters() {
-    const active = filterDraft || state.filters;
+    const applied = activeFilters();
+    const active = filterDraft || applied;
     $('#distance-range').value = active.maxDistanceKm;
     $('#budget-range').value = active.maxBudget;
     all('.range-control input').forEach((input) => {
@@ -74,14 +98,21 @@
     });
     $('#distance-output').textContent = `${active.maxDistanceKm} km`;
     $('#budget-output').textContent = `¥${active.maxBudget}`;
-    $('#distance-summary').textContent = `${state.filters.maxDistanceKm} km 内`;
-    $('#budget-summary').textContent = `¥${state.filters.maxBudget} / 人`;
-    $('#category-summary').textContent = state.filters.category === 'all' ? '口味随缘' : state.filters.category;
+    $('#distance-summary').textContent = nearby ? `${applied.maxDistanceKm} km 直线` : `${applied.maxDistanceKm} km 内`;
+    $('#budget-summary').textContent = `¥${applied.maxBudget} / 人`;
+    $('#category-summary').textContent = applied.category === 'all' ? '口味随缘' : applied.category;
     all('[data-category]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.category === active.category)));
-    const draftCount = filterRestaurants(state.restaurants, active).length;
+    const draftCount = pool(active).length;
     $('#filter-count').textContent = draftCount ? `${draftCount} 家餐馆，准备好成为今天的答案` : '暂时没有合适的店，换个范围试试吧';
     const count = pool().length;
-    $('#availability').textContent = count ? `${count} 家餐馆里，总有今天的心动` : '暂时没有合适的店，试着放宽筛选条件';
+    $('#availability').textContent = count
+      ? (nearby ? `附近 ${count} 家可抽选 · ${nearby.checkedAt} 定位` : `${count} 家餐馆里，总有今天的心动`)
+      : '暂时没有合适的店，试着放宽筛选条件';
+    $('#use-library').hidden = !nearby;
+    $('#nearby-credit').hidden = !nearby;
+    $('#budget-filter').hidden = Boolean(nearby);
+    $('#budget-control').hidden = Boolean(nearby);
+    $('#nearby-action-label').textContent = nearby ? '重新定位搜店' : '附近搜店';
     $('#availability').classList.toggle('is-empty', !count);
     if (!count) $('#draw-label').textContent = '换个范围试试';
     else if (state.phase !== 'thinking') $('#draw-label').textContent = state.selected ? '再选一家' : '帮我选一顿';
@@ -94,7 +125,7 @@
     drawTimer = null;
     ticker = null;
     state.selected = null;
-    state.confirmed = false;
+    state.confirmation = null;
     state.phase = 'idle';
     $('#scene').classList.remove('is-thinking', 'is-reveal', 'is-confirmed');
     $('#result-card').classList.remove('is-reveal');
@@ -104,6 +135,9 @@
     $('#result-kicker').textContent = '这一餐的小期待';
     $('#result-name').textContent = '好吃的答案，马上就来';
     $('#result-meta').textContent = '选好范围，按一下，让快乐开饭。';
+    $('#result-address').hidden = true;
+    $('#result-map').hidden = true;
+    $('#result-map').removeAttribute('href');
     $('#confirm-button').hidden = true;
   }
 
@@ -114,9 +148,12 @@
 
   function renderLibrary() {
     const query = $('#restaurant-search').value.trim().toLowerCase();
-    const list = state.restaurants.filter((item) => `${item.name} ${item.category} ${item.note}`.toLowerCase().includes(query));
+    const list = state.restaurants.filter((item) => `${item.name} ${item.category} ${addressFor(item)} ${item.note}`.toLowerCase().includes(query));
     $('#library-count').textContent = `${state.restaurants.length} 家`;
-    $('#restaurant-list').innerHTML = list.length ? list.map((item) => `<article class="restaurant-row ${item.enabled ? '' : 'is-disabled'}"><span class="restaurant-letter" aria-hidden="true">${escaped(Array.from(item.name)[0])}</span><div class="restaurant-details"><h3>${escaped(item.name)}</h3><p>${escaped(metadata(item))}</p></div><div class="restaurant-actions"><button class="restaurant-toggle" data-toggle="${escaped(item.id)}" aria-pressed="${item.enabled}" aria-label="让${escaped(item.name)}参与选餐"></button><button class="row-action" data-edit="${escaped(item.id)}" aria-label="编辑${escaped(item.name)}">${icon('edit')}</button><button class="row-action row-delete" data-delete="${escaped(item.id)}" aria-label="移除${escaped(item.name)}">${icon('trash')}</button></div></article>`).join('') : `<p class="empty-state">${state.restaurants.length ? '还没找到这家，试试别的名字吧。' : '清单还是空的，加一家喜欢的店吧。'}</p>`;
+    $('#restaurant-list').innerHTML = list.length ? list.map((item) => {
+      const address = addressFor(item);
+      return `<article class="restaurant-row ${item.enabled ? '' : 'is-disabled'}"><span class="restaurant-letter" aria-hidden="true">${escaped(Array.from(item.name)[0])}</span><div class="restaurant-details"><h3>${escaped(item.name)}</h3><p>${escaped(metadata(item))}</p>${address ? `<p>${escaped(address)}</p>` : ''}</div><div class="restaurant-actions"><button class="restaurant-toggle" data-toggle="${escaped(item.id)}" aria-pressed="${item.enabled}" aria-label="让${escaped(item.name)}参与选餐"></button><button class="row-action" data-edit="${escaped(item.id)}" aria-label="编辑${escaped(item.name)}">${icon('edit')}</button><button class="row-action row-delete" data-delete="${escaped(item.id)}" aria-label="移除${escaped(item.name)}">${icon('trash')}</button></div></article>`;
+    }).join('') : `<p class="empty-state">${state.restaurants.length ? '还没找到这家，试试店名或地址。' : '清单还是空的，加一家喜欢的店吧。'}</p>`;
     renderUndo();
   }
 
@@ -178,6 +215,63 @@
     syncFilters();
   }
 
+  function openNearby() {
+    if (!isNative || writing || state.phase === 'thinking') return;
+    $('#nearby-radius').textContent = `${activeFilters().maxDistanceKm} km`;
+    $('#nearby-status').textContent = '';
+    $('#nearby').showModal();
+    refreshDisabled();
+  }
+
+  function readPosition() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) { reject(new Error('当前设备无法定位。')); return; }
+      navigator.geolocation.getCurrentPosition(({ coords }) => {
+        if (!Number.isFinite(coords.accuracy) || coords.accuracy > 1000) {
+          reject(new Error('这次定位的误差超过 1 km，请检查 Windows 位置服务后再试。'));
+        } else {
+          resolve(coords);
+        }
+      }, (error) => {
+        reject(new Error(error.code === 1 ? '未取得定位权限，请在 Windows 的「隐私和安全性 → 位置」中检查权限。' : '暂时没有取得当前位置，请稍后重试。'));
+      }, { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 });
+    });
+  }
+
+  async function findNearby() {
+    if (nearbyBusy || writing) return;
+    const ticket = ++nearbyTicket;
+    const filters = { ...activeFilters() };
+    nearbyBusy = true;
+    $('#nearby-status').textContent = '正在定位…';
+    refreshDisabled();
+    try {
+      const { latitude, longitude } = await readPosition();
+      if (ticket !== nearbyTicket) return;
+      $('#nearby-status').textContent = '正在查询 OpenStreetMap…';
+      const found = await storage.searchNearby(latitude, longitude, Math.round(filters.maxDistanceKm * 1000));
+      if (ticket !== nearbyTicket) return;
+      if (!Array.isArray(found)) throw new Error('地图返回的结果无法读取，请重试。');
+      const restaurants = found.map(normalizeRestaurant).filter((item) => item.name);
+      if (!restaurants.length) throw new Error('地图暂未收录这个范围内的餐馆，可以扩大距离后重试。');
+      nearby = {
+        restaurants,
+        filters,
+        searchedRadiusKm: filters.maxDistanceKm,
+        checkedAt: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+      };
+      clearResult();
+      renderData();
+      $('#nearby').close();
+      const eligibleCount = pool().length;
+      showToast(eligibleCount ? `附近有 ${eligibleCount} 家可抽选。` : '搜到了附近餐馆，调整口味筛选后即可抽选。');
+    } catch (error) {
+      if (ticket === nearbyTicket) $('#nearby-status').textContent = message(error, '附近餐馆查询失败，请重试。');
+    } finally {
+      if (ticket === nearbyTicket) { nearbyBusy = false; refreshDisabled(); }
+    }
+  }
+
   function draw() {
     if (writing || state.phase === 'thinking') return;
     const candidates = pool();
@@ -205,32 +299,58 @@
       state.previousId = selected.id;
       $('#scene').classList.remove('is-thinking');
       $('#scene').classList.add('is-reveal');
-      setSpeech('就它啦，好好吃饭！');
       setPlateName(selected.name);
       $('#plate-caption').textContent = '小饭团为你认真推荐';
       $('#draw-label').textContent = '再选一家';
       $('#result-card').classList.add('is-reveal');
-      $('#result-kicker').textContent = '小饭团说，就吃这家';
       $('#result-name').textContent = selected.name;
-      $('#result-meta').textContent = metadata(selected);
-      $('#confirm-button').innerHTML = `就吃这家 ${icon('check')}`;
+      $('#result-meta').textContent = `${nearby ? '直线距离 · ' : ''}${metadata(selected)}`;
+      const address = addressFor(selected);
+      $('#result-address').textContent = address || '地址待补充';
+      $('#result-address').hidden = false;
+      const url = mapUrl(selected, address);
+      if (url) $('#result-map').href = url;
+      $('#result-map').hidden = !url;
+      setChoiceConfirmation(null);
       $('#confirm-button').hidden = false;
       refreshDisabled();
     }, 1750);
   }
 
-  async function confirmChoice() {
-    if (!state.selected || state.confirmed || writing) return;
-    const chosen = { ...state.selected };
+  function setChoiceConfirmation(confirmation) {
+    state.confirmation = confirmation;
+    const confirmed = Boolean(confirmation);
+    $('#scene').classList.toggle('is-confirmed', confirmed);
+    $('#result-kicker').textContent = confirmed ? '这顿，就这么定了' : '小饭团说，就吃这家';
+    const button = $('#confirm-button');
+    button.classList.toggle('is-undo', confirmed);
+    button.innerHTML = confirmed ? `撤销选择 ${icon('undo')}` : `就吃这家 ${icon('check')}`;
+    setSpeech(confirmed ? '开饭咯，祝你好胃口！' : '就它啦，好好吃饭！');
+  }
+
+  async function toggleChoice() {
+    if (!state.selected || writing) return;
+    if (state.confirmation) {
+      const { entry, displaced } = state.confirmation;
+      await commit((next) => {
+        const index = next.history.findIndex(({ at, restaurant }) => at === entry.at && restaurant.id === entry.restaurant.id);
+        if (index === -1) throw new Error('这条选择已不在记录里。');
+        next.history.splice(index, 1);
+        if (displaced && next.history.length < HISTORY_LIMIT) next.history.push(displaced);
+      }, () => {
+        setChoiceConfirmation(null);
+        showToast('已撤销这次选择。');
+      }, false);
+      return;
+    }
+
+    const entry = { restaurant: { ...state.selected, address: addressFor(state.selected) }, at: Date.now() };
+    const displaced = state.history[HISTORY_LIMIT - 1];
     await commit((next) => {
-      next.history.unshift({ restaurant: chosen, at: Date.now() });
-      next.history = next.history.slice(0, 365);
+      next.history.unshift(entry);
+      next.history = next.history.slice(0, HISTORY_LIMIT);
     }, () => {
-      state.confirmed = true;
-      $('#scene').classList.add('is-confirmed');
-      $('#result-kicker').textContent = '这顿，就这么定了';
-      $('#confirm-button').innerHTML = `已记下 ${icon('check')}`;
-      setSpeech('开饭咯，祝你好胃口！');
+      setChoiceConfirmation({ entry, displaced });
       showToast('记下这家了，祝你有个好胃口！');
     }, false);
   }
@@ -249,6 +369,8 @@
     editingId = item.id;
     const form = $('#edit-form');
     for (const field of ['name', 'category', 'distanceKm', 'budget', 'note']) form.elements[field].value = item[field] || '';
+    form.elements.address.value = item.address || '';
+    form.elements.address.placeholder = addressFor(item) || '街道门牌、商场或楼层';
     form.elements.name.setCustomValidity('');
     $('#restaurant-editor').showModal();
   }
@@ -338,11 +460,12 @@
   const initial = codec.normalizeState(loaded.state, window.INITIAL_RESTAURANTS || []);
   state.restaurants = initial.restaurants;
   state.filters = initial.filters;
-  state.history = initial.history.slice(0, 365);
+  state.history = initial.history.slice(0, HISTORY_LIMIT);
   state.catalogBatches = initial.catalogBatches;
   isNative = Boolean(loaded.isNative);
   all('[data-storage-note]').forEach((note) => { note.textContent = isNative ? '数据保存在这台电脑' : '数据保存在当前浏览器'; });
   $('#data-directory').hidden = !isNative;
+  $('#location-actions').hidden = !isNative;
   if (isNative && loaded.dataDirectory) $('#data-directory').title = loaded.dataDirectory;
   if (loaded.warning) {
     $('#storage-warning').hidden = false;
@@ -357,7 +480,7 @@
     if ((name === 'library' || name === 'preferences') && state.phase === 'thinking') return;
     if (name === 'library') renderLibrary();
     if (name === 'history') renderHistory();
-    if (name === 'preferences') { filterDraft = { ...state.filters }; renderCategories(); syncFilters(); }
+    if (name === 'preferences') { filterDraft = { ...activeFilters() }; renderCategories(); syncFilters(); }
     $('#' + name).showModal();
     refreshDisabled();
   }));
@@ -373,11 +496,24 @@
       if (dialog.id === 'preferences') { filterDraft = null; syncFilters(); }
       if (dialog.id === 'restore-preview') { pendingImport = null; refreshDisabled(); }
       if (dialog.id === 'restaurant-editor') editingId = null;
+      if (dialog.id === 'nearby') {
+        nearbyTicket += 1;
+        nearbyBusy = false;
+        refreshDisabled();
+      }
       if (dialog.contains($('#toast'))) { $('#toast').hidden = true; document.body.append($('#toast')); }
     });
   });
   $('#draw-button').addEventListener('click', draw);
-  $('#confirm-button').addEventListener('click', confirmChoice);
+  $('#confirm-button').addEventListener('click', toggleChoice);
+  $('#open-nearby').addEventListener('click', openNearby);
+  $('#find-nearby').addEventListener('click', findNearby);
+  $('#use-library').addEventListener('click', () => {
+    if (writing || state.phase === 'thinking') return;
+    nearby = null;
+    clearResult();
+    renderData();
+  });
   $('#distance-range').addEventListener('input', (event) => updateFilterDraft({ maxDistanceKm: Number(event.target.value) }));
   $('#budget-range').addEventListener('input', (event) => updateFilterDraft({ maxBudget: Number(event.target.value) }));
   $('#category-options').addEventListener('click', (event) => {
@@ -388,6 +524,14 @@
   $('#apply-preferences').addEventListener('click', async () => {
     if (!filterDraft) return;
     const filters = { ...filterDraft };
+    if (nearby) {
+      nearby.filters = filters;
+      clearResult();
+      $('#preferences').close();
+      renderData();
+      if (filters.maxDistanceKm > nearby.searchedRadiusKm) showToast('距离范围已扩大，点「重新定位搜店」查找更远的餐馆。');
+      return;
+    }
     await commit((next) => { next.filters = filters; }, () => { $('#preferences').close(); });
   });
   $('#restaurant-search').addEventListener('input', () => { renderLibrary(); refreshDisabled(); });
@@ -447,6 +591,7 @@
   $('#clear-history').addEventListener('click', () => { if (!writing && state.history.length) $('#clear-history-dialog').showModal(); });
   $('#clear-history-confirm').addEventListener('click', async () => {
     await commit((next) => { next.history = []; }, () => {
+      if (state.confirmation) setChoiceConfirmation(null);
       $('#clear-history-dialog').close();
       showToast('选择记录已清空，餐馆清单保留。');
     }, false);

@@ -10,6 +10,8 @@ const state = () => ({ restaurants: [{ ...original }], filters: { maxDistanceKm:
 
 test('full snapshots round-trip restaurants, settings and history without changing valid prices', () => {
   const input = state();
+  input.restaurants[0].address = '宜山路455号B2层';
+  input.history[0].restaurant.address = input.restaurants[0].address;
   const before = JSON.stringify(input);
   const snapshot = codec.createSnapshot(input);
   const result = codec.parseBackup(JSON.stringify(snapshot));
@@ -19,6 +21,8 @@ test('full snapshots round-trip restaurants, settings and history without changi
   assert.equal(result.historyCount, 1);
   assert.equal(result.snapshot.restaurants[0].budget, 28.5);
   assert.equal(result.snapshot.restaurants[0].distanceKm, .45);
+  assert.equal(result.snapshot.restaurants[0].address, '宜山路455号B2层');
+  assert.equal(result.snapshot.history[0].restaurant.address, '宜山路455号B2层');
   assert.deepEqual(result.snapshot, snapshot);
   assert.equal(JSON.stringify(input), before);
 });
@@ -30,6 +34,7 @@ test('legacy arrays and UTF-8 BOM import as complete backups, keeping zero as un
   assert.equal(result.snapshot.restaurants[0].budget, 0);
   assert.equal(result.snapshot.restaurants[0].distanceKm, 0);
   assert.equal(result.snapshot.restaurants[0].enabled, false);
+  assert.equal(Object.hasOwn(result.snapshot.restaurants[0], 'address'), false);
   assert.deepEqual(result.snapshot.filters, { maxDistanceKm: 1, maxBudget: 60, category: 'all' });
 });
 

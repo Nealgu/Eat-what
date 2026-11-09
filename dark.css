@@ -142,6 +142,40 @@ h1 > span > svg { stroke: #525957; }
 .draw-button:disabled { box-shadow: none; }
 .availability.is-empty { color: var(--accent-text); }
 
+.availability-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  margin-top: 13px;
+}
+.availability-row .availability { margin-top: 0; }
+
+.location-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0 16px;
+}
+
+.location-actions .text-button,
+.map-link { color: var(--green); }
+.location-actions .text-button { padding: 2px 0; }
+.location-actions .icon { width: 13px; height: 13px; }
+.location-actions .text-button:hover:not(:disabled),
+.map-link:hover { color: var(--ink); }
+
+.map-link {
+  display: inline-block;
+  padding: 3px 0;
+  font-size: 11px;
+  text-underline-offset: 3px;
+}
+
+.result-copy .result-address { margin-top: 4px; }
+.map-credit { color: var(--muted); font-size: 10px; text-underline-offset: 2px; }
+
 .result-card,
 .result-card.is-reveal {
   background: var(--surface);
@@ -158,6 +192,8 @@ h1 > span > svg { stroke: #525957; }
 }
 
 .confirm-button:hover:not(:disabled) { background: #435448; }
+.confirm-button.is-undo { background: transparent; color: var(--muted); }
+.confirm-button.is-undo:hover:not(:disabled) { background: var(--surface-raised); color: var(--ink); }
 .footer-line { background: var(--line); }
 
 /* Dialogs, inputs and feedback */
@@ -172,6 +208,13 @@ h1 > span > svg { stroke: #525957; }
 .sheet::backdrop { background: #0b1215a6; }
 .sheet-header { background: var(--surface); border-color: var(--line); }
 .sheet-footer { background: var(--page); border-color: var(--line); }
+
+.nearby-body p { color: var(--muted); font-size: 13px; }
+.nearby-body .nearby-status { margin-top: 12px; color: var(--accent-text); }
+.nearby-status:empty { display: none; }
+.nearby-sources { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 12px; }
+.nearby-sheet .sheet-footer { justify-content: flex-end; }
+.nearby-sheet .solid-button:disabled { opacity: .55; }
 
 .sheet-eyebrow,
 .sheet-header h2 > span,

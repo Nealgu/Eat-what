@@ -37,6 +37,7 @@
 
   function normalizeRestaurant(input) {
     const item = input && typeof input === 'object' && !Array.isArray(input) ? input : {};
+    const address = plainText(item.address);
     return {
       id: plainText(item.id) || createId(),
       name: plainText(item.name),
@@ -44,6 +45,7 @@
       distanceKm: nonNegative(item.distanceKm),
       budget: Math.round(nonNegative(item.budget)),
       note: plainText(item.note),
+      ...(address ? { address } : {}),
       enabled: item.enabled !== false
     };
   }

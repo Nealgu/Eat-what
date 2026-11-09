@@ -1,6 +1,6 @@
 {
   "name": "food-time-studio",
-  "version": "1.0.0",
+  "version": "1.2.1",
   "private": true,
   "description": "饭点：让饭团小厨帮你选一顿，独立本地设计版本。",
   "scripts": {

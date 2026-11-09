@@ -51,10 +51,11 @@
     if (!record(input)) throw new Error(label + '的格式不正确。');
     const name = text(field(input, 'name'));
     if (!name) throw new Error(label + '缺少有效的餐馆名称。');
-    for (const key of ['category', 'note']) {
+    const textFields = { category: '分类', note: '备注', address: '地址' };
+    for (const [key, name] of Object.entries(textFields)) {
       const value = field(input, key);
       if (value !== undefined && typeof value !== 'string') {
-        throw new Error(label + (key === 'category' ? '的分类' : '的备注') + '必须是文字。');
+        throw new Error(label + '的' + name + '必须是文字。');
       }
     }
     const enabled = field(input, 'enabled');
@@ -71,6 +72,7 @@
       name: name,
       category: text(field(input, 'category')),
       note: text(field(input, 'note')),
+      address: text(field(input, 'address')),
       distanceKm: distanceKm,
       budget: budget,
       enabled: enabled !== false
